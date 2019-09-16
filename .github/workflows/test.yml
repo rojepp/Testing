@@ -1,0 +1,28 @@
+name: Build master
+
+on: [push]
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        dotnet: [2.2.401, 3.0.100-preview9-014004]
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: rojepp/setup-dotnet@fix_dotnet_root
+      with:
+        dotnet-version: ${{ matrix.dotnet }}
+    - name: Set up FAKE build tool
+      run: dotnet tool install --tool-path .fake fake-cli
+    - name: Build with FAKE (Linux/OSX)
+      if: runner.os != 'Windows'
+      run: .fake/fake build
+
+    - name: Build with FAKE (Windows)
+      if: runner.os == 'Windows'
+      run: .fake\fake build
